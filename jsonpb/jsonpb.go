@@ -512,6 +512,15 @@ func (m *Marshaler) marshalValue(out *errWriter, prop *proto.Properties, v refle
 
 	v = reflect.Indirect(v)
 
+	if v.Kind() == reflect.Interface {
+		// Interface -> *T
+		v = v.Elem()
+		if v.Kind() == reflect.Ptr {
+			// *T -> T
+			v = v.Elem()
+		}
+	}
+
 	// Handle nil pointer
 	if v.Kind() == reflect.Invalid {
 		out.write("null")

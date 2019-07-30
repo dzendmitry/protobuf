@@ -137,6 +137,10 @@ func (m *Marshaler) Marshal(out io.Writer, pb proto.Message) error {
 	return m.marshalObject(writer, pb, "", "")
 }
 
+func (m *Marshaler) MarshalArray(out io.Writer, src []interface{}) error {
+	return m.marshalValue(&errWriter{writer: out}, &proto.Properties{}, reflect.ValueOf(src), "")
+}
+
 // MarshalToString converts a protocol buffer object to JSON string.
 func (m *Marshaler) MarshalToString(pb proto.Message) (string, error) {
 	var buf bytes.Buffer
@@ -767,6 +771,13 @@ func (u *Unmarshaler) UnmarshalNext(dec *json.Decoder, pb proto.Message) error {
 func (u *Unmarshaler) Unmarshal(r io.Reader, pb proto.Message) error {
 	dec := json.NewDecoder(r)
 	return u.UnmarshalNext(dec, pb)
+}
+
+func (u *Unmarshaler) UnmarshalArray(data []byte, target interface{}) error {
+	if err := u.unmarshalValue(reflect.ValueOf(target).Elem(), json.RawMessage(data), nil); err != nil {
+		return err
+	}
+	return nil
 }
 
 // UnmarshalNext unmarshals the next protocol buffer from a JSON object stream.
